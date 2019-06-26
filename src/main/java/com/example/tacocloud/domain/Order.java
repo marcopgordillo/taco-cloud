@@ -6,10 +6,16 @@ import org.hibernate.validator.constraints.CreditCardNumber;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Data
-public class Order {
+public class Order implements Serializable {
+
+  private static final long serialVersionUID = 1L;
 
   private Long id;
   private Date placedAt;
@@ -24,6 +30,7 @@ public class Order {
   private String city;
 
   @NotBlank(message = "State is required")
+  @Size(min = 2, max = 2, message = "State is 2 characters long")
   private String state;
 
   @NotBlank(message = "Zip code is required")
@@ -38,4 +45,10 @@ public class Order {
 
   @Digits(integer = 3, fraction = 0, message = "Invalid CVV")
   private String ccCVV;
+
+  private List<Taco> tacos = new ArrayList<>();
+
+  public void addDesign(Taco design) {
+    this.tacos.add(design);
+  }
 }
