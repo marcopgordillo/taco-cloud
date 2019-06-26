@@ -24,6 +24,6 @@ div.ingredient-group {
     box-sizing: border-box;
 }
 
-label.validationError {
+span.validationError {
     color: red;
 }
