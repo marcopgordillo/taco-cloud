@@ -12,6 +12,7 @@ import java.util.List;
 
 @Data
 @Entity
+@Table(name = "tacos")
 public class Taco implements Serializable {
 
   private static final long serialVersionUID = 1L;
@@ -20,10 +21,12 @@ public class Taco implements Serializable {
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long id;
 
+  @Column(nullable = false)
   private Date createdAt;
 
   @NotNull
   @Size(min = 5, message = "Name must be at least 5 characters long")
+  @Column(nullable = false, length = 50)
   private String name;
 
   @ManyToMany(targetEntity = Ingredient.class)
