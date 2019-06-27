@@ -36,7 +36,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.authorizeRequests()
-//            .antMatchers("/h2_console/**").permitAll()
             .antMatchers("/design", "/orders")
             .hasRole("USER")
             .antMatchers("/", "/**")
@@ -47,8 +46,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .defaultSuccessUrl("/design", true)
             .and()
             .logout()
-            .logoutSuccessUrl("/");
-/*    http.csrf().disable();
-    http.headers().frameOptions().disable();*/
+            .logoutSuccessUrl("/")
+            .and()
+            .csrf()
+            .ignoringAntMatchers("/h2-console/**")
+            .and()
+            .headers()
+            .frameOptions()
+            .sameOrigin();
   }
 }
