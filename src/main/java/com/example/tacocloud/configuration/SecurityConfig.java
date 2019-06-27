@@ -31,6 +31,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .passwordAttribute("passcode")
             .and()
             .contextSource()
-            .url("ldap://tacocloud.com:389/dc=tacocloud,dc=com");
+            .root("dc=tacocloud,dc=com")
+            .ldif("classpath:users.ldif");
   }
 }
