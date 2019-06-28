@@ -3,7 +3,7 @@ greeting:
 #  welcome: You are using ${spring.application.name}.
 taco:
   orders:
-    page-size: 10
+    page-size: 12
   discount:
     codes:
       abcdef: 10
