@@ -6,6 +6,8 @@ import com.example.tacocloud.repostory.TacoRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -32,9 +34,11 @@ public class DesignTacoController {
   }
 
   @GetMapping("/{id}")
-  public Taco tacoById(@PathVariable("id") Long id) {
+  public ResponseEntity<Taco> tacoById(@PathVariable("id") Long id) {
     Optional<Taco> optTaco = tacoRepo.findById(id);
 
-    return optTaco.orElse(null);
+    return optTaco
+            .map(taco -> new ResponseEntity<>(taco, HttpStatus.OK))
+            .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
   }
 }
