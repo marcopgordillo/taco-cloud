@@ -1,3 +1,10 @@
 greeting:
   welcome: ${spring.application.name}
 #  welcome: You are using ${spring.application.name}.
+taco:
+  orders:
+    page-size: 10
+  discount:
+    codes:
+      abcdef: 10
+      defr: 20
