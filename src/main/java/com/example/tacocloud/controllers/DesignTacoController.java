@@ -1,19 +1,25 @@
 package com.example.tacocloud.controllers;
 
 import com.example.tacocloud.configuration.OrderProps;
+import com.example.tacocloud.controllers.assembler.TacoResourceAssembler;
 import com.example.tacocloud.domain.Taco;
+import com.example.tacocloud.domain.hateoas.TacoResource;
 import com.example.tacocloud.repostory.TacoRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 import static java.util.Objects.isNull;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
 @Slf4j
 @RestController
@@ -30,10 +36,19 @@ public class DesignTacoController {
   }
 
   @GetMapping("/recent")
-  public Iterable<Taco> recentTacos() {
+  public Resources<TacoResource> recentTacos() {
     PageRequest page = PageRequest.of(0, orderProps.getPageSize(), Sort.by("createdAt").descending());
 
-    return tacoRepo.findAll(page).getContent();
+    List<Taco> tacos = tacoRepo.findAll(page).getContent();
+    List<TacoResource> tacoResources = new TacoResourceAssembler().toResources(tacos);
+
+    Resources<TacoResource> recentResources = new Resources<>(tacoResources);
+
+    recentResources.add(
+            linkTo(methodOn(DesignTacoController.class).recentTacos())
+                    .withRel("recents"));
+
+    return recentResources;
   }
 
   @GetMapping("/{id}")
