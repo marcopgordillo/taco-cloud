@@ -1,6 +1,8 @@
 package com.example.tacocloud.repostory;
 
 import com.example.tacocloud.domain.Order;
+import com.example.tacocloud.domain.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -15,4 +17,6 @@ public interface OrderRepository extends CrudRepository<Order, Long> {
 
   @Query("SELECT o from Order o where o.city=?1")
   List<Order> readOrdersDeliveredInSeattle(String city);
+
+  List<Order> findByUserOrderByPlacedAtDesc(User user, Pageable pageable);
 }
