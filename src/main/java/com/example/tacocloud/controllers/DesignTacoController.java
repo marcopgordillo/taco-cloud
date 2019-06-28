@@ -1,81 +1,97 @@
 package com.example.tacocloud.controllers;
 
-import com.example.tacocloud.domain.Ingredient;
-import com.example.tacocloud.domain.Order;
+import com.example.tacocloud.configuration.OrderProps;
 import com.example.tacocloud.domain.Taco;
-import com.example.tacocloud.domain.Type;
-import com.example.tacocloud.repostory.IngredientRepository;
 import com.example.tacocloud.repostory.TacoRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.Errors;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+
+import static java.util.Objects.isNull;
 
 @Slf4j
-@Controller
-@RequestMapping("/design")
-@SessionAttributes("order")
+@RestController
+@RequestMapping(path = "/design", produces = {"application/json", "text/xml"})
+@CrossOrigin(origins = "*")
 public class DesignTacoController {
 
-  private final IngredientRepository ingredientRepo;
-  private final TacoRepository designRepo;
+  private final TacoRepository tacoRepo;
+  private final OrderProps orderProps;
 
-  public DesignTacoController(IngredientRepository ingredientRepo, TacoRepository designRepo) {
-    this.ingredientRepo = ingredientRepo;
-    this.designRepo = designRepo;
+  public DesignTacoController(TacoRepository tacoRepo, OrderProps orderProps) {
+    this.tacoRepo = tacoRepo;
+    this.orderProps = orderProps;
   }
 
-  @ModelAttribute
-  public void addIngredientsToModel(Model model) {
-    List<Ingredient> ingredients = new ArrayList<>();
-    ingredientRepo.findAll().forEach(ingredients::add);
+  @GetMapping("/recent")
+  public Iterable<Taco> recentTacos() {
+    PageRequest page = PageRequest.of(0, orderProps.getPageSize(), Sort.by("createdAt").descending());
 
-    Type[] types = Type.values();
+    return tacoRepo.findAll(page).getContent();
+  }
 
-    for (Type type : types) {
-      model.addAttribute(type.toString().toLowerCase(),
-              filterByType(ingredients, type));
+  @GetMapping("/{id}")
+  public ResponseEntity<Taco> tacoById(@PathVariable("id") Long id) {
+    Optional<Taco> optTaco = tacoRepo.findById(id);
+
+    return optTaco
+            .map(taco -> new ResponseEntity<>(taco, HttpStatus.OK))
+            .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+  }
+
+  @PostMapping(consumes = "application/json")
+  @ResponseStatus(HttpStatus.CREATED)
+  public Taco postTaco(@RequestBody Taco taco) {
+    return tacoRepo.save(taco);
+  }
+
+  @PutMapping("/{tacoId}")
+  public ResponseEntity<Taco> putTaco(@PathVariable("tacoId") Long tacoId, @RequestBody Taco taco) {
+    Optional<Taco> optTaco = tacoRepo.findById(tacoId);
+
+    if (optTaco.isPresent()) {
+      tacoRepo.save(taco);
+      return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
+    return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
   }
 
-  @ModelAttribute(name = "order")
-  public Order order() {
-    return new Order();
-  }
+  @PatchMapping(path = "/{tacoId}", consumes = "application/json")
+  public ResponseEntity<Taco> patchTaco(@PathVariable("tacoId") Long tacoId, @RequestBody Taco tacoPatch) {
+    Optional<Taco> optTaco = tacoRepo.findById(tacoId);
+    if (optTaco.isPresent()) {
 
-  @ModelAttribute(name = "taco")
-  public Taco taco() {
-    return new Taco();
-  }
+      Taco taco = optTaco.get();
 
-  @GetMapping
-  public String showDesignForm() {
-    return "design";
-  }
+      if (!isNull(tacoPatch.getCreatedAt())) {
+        taco.setCreatedAt(tacoPatch.getCreatedAt());
+      }
+      if (!isNull(tacoPatch.getName())) {
+        taco.setName(tacoPatch.getName());
+      }
+      if (!isNull(tacoPatch.getIngredients()) && !tacoPatch.getIngredients().isEmpty()) {
+        taco.setIngredients(tacoPatch.getIngredients());
+      }
 
-  @PostMapping
-  public String processDesign(@Valid Taco design, Errors errors, @ModelAttribute("order") Order order) {
-    if (errors.hasErrors()) {
-      return "design";
+      tacoRepo.save(taco);
+      return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
-
-    Taco saved = designRepo.save(design);
-    order.addDesign(saved);
-
-    log.info("Processing design: " + design);
-    return "redirect:/orders/current";
+    return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
   }
 
-  private List<Ingredient> filterByType(List<Ingredient> ingredients, Type type) {
-    return ingredients
-            .stream()
-            .filter(x -> x.getType().equals(type))
-            .collect(Collectors.toList());
+  @DeleteMapping("/{tacoId}")
+  public ResponseEntity deleteTaco(@PathVariable("tacoId") Long tacoId) {
+    try {
+      tacoRepo.deleteById(tacoId);
+      return new ResponseEntity(HttpStatus.NO_CONTENT);
+    } catch (EmptyResultDataAccessException e) {
+      return new ResponseEntity(HttpStatus.NOT_FOUND);
+    }
   }
 }
