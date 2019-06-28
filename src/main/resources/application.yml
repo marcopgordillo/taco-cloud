@@ -8,3 +8,7 @@ taco:
     codes:
       abcdef: 10
       defr: 20
+
+logging:
+  level:
+    tacos: DEBUG
