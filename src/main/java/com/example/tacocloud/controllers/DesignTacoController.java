@@ -64,7 +64,6 @@ public class DesignTacoController {
 
   @PatchMapping(path = "/{tacoId}", consumes = "application/json")
   public ResponseEntity<Taco> patchTaco(@PathVariable("tacoId") Long tacoId, @RequestBody Taco tacoPatch) {
-    log.info(tacoPatch.toString());
     Optional<Taco> optTaco = tacoRepo.findById(tacoId);
     if (optTaco.isPresent()) {
 
