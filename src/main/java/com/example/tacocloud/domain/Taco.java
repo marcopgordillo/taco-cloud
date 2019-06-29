@@ -1,6 +1,7 @@
 package com.example.tacocloud.domain;
 
 import lombok.Data;
+import org.springframework.data.rest.core.annotation.RestResource;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import java.util.List;
 @Data
 @Entity
 @Table(name = "tacos")
+@RestResource(rel = "tacos", path = "tacos")
 public class Taco implements Serializable {
 
   private static final long serialVersionUID = 1L;
